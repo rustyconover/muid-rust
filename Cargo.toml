@@ -5,7 +5,9 @@ authors = ["Rusty Conover <rusty@conover.me>"]
 edition = "2018"
 license = "MIT"
 homepage = "https://www.muid.org/"
+description = "A Rust implementation for midning muids"
 repository = "https://github.com/rustyconover/muid-rust"
+include = ["animals.json"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
