@@ -1,11 +1,11 @@
 [package]
 name = "muid"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Rusty Conover <rusty@conover.me>"]
 edition = "2018"
 license = "MIT"
 homepage = "https://www.muid.org/"
-description = "A Rust implementation for midning muids"
+description = "A Rust implementation for mining muids"
 repository = "https://github.com/rustyconover/muid-rust"
 include = ["src/**/*", "Cargo.toml", "animals.json", "build.rs"]
 
