@@ -1,16 +1,10 @@
 #![feature(proc_macro_hygiene)]
 
-use fnv::FnvHashMap;
-use hex::{decode, encode};
+use hex::encode;
 use random_fast_rng::{local_rng, Random};
 use ring::digest;
-use serde_json;
-use std::collections::HashMap;
-use std::convert::TryInto;
-use std::fs::File;
-use std::io::prelude::*;
 use std::process;
-use std::sync::{Arc, RwLock};
+use std::str;
 use std::thread;
 
 // This is the difficulty.
@@ -20,26 +14,7 @@ use std::thread;
 //
 // Since 12 seems to be the minimum difficulty for now to write
 // new streams this seems acceptable.
-const DIFFICULTY: usize = 14;
-
-// Invert the readable hex
-fn from_readable_hex(word: &str) -> String {
-    word.chars()
-        .map(|x| match x {
-            'o' => '0',
-            'l' => '1',
-            'z' => '2',
-            'm' => '3',
-            'y' => '4',
-            's' => '5',
-            'h' => '6',
-            't' => '7',
-            'x' => '8',
-            'g' => '9',
-            x => x,
-        })
-        .collect()
-}
+include!(concat!(env!("OUT_DIR"), "/difficulty.rs"));
 
 fn to_readable_hex(word: &str) -> String {
     word.chars()
@@ -79,90 +54,73 @@ fn bhash(key: &[u8]) -> String {
     return encode(&result.as_ref()[0..16]);
 }
 
-// Hash the value but don't hex encode it, place it in
-// a destination rather than allocating a string.
-fn bhash2(key: &[u8], dest: &mut [u8; 16]) {
-    let result = digest::digest(&digest::SHA256, key);
-    dest.copy_from_slice(&result.as_ref()[0..16]);
+const POOL_SIZE: usize = 4096;
+
+fn generate_iter(len: usize) -> impl Iterator<Item = (usize, usize)> {
+    (0..len).step_by(2).zip((0..len).skip(1).step_by(2))
 }
 
-fn mine(corpus: &Arc<RwLock<FnvHashMap<[u8; DIFFICULTY / 2], (u8, u8)>>>) {
-    let map = corpus.read().expect("RwLock poisoned");
-    let mut target: [u8; 16] = [0; 16];
+fn byte2hex(byte: u8, table: &[u8; 16]) -> (u8, u8) {
+    let high = table[((byte & 0xf0) >> 4) as usize];
+    let low = table[(byte & 0x0f) as usize];
+
+    (high, low)
+}
+const HEX_CHARS_LOWER: &[u8; 16] = b"0123456789abcdef";
+
+fn mine() {
     let mut gen = local_rng();
+    let mut pool: [u8; 16 * POOL_SIZE] = [0; 16 * POOL_SIZE];
+    let mut encoded_pool: [u8; 2 * 16 * POOL_SIZE] = [0; 2 * 16 * POOL_SIZE];
+
     loop {
-        // Generate 16 random bytes, then convert them to hex
-        //
-        // Is searching 16 random bytes the most productive way to find
-        // these values? With more CPUs the search could be more coordinated
-        // so that values could be saved and resumed, but alas I'll go
-        // with this for now.
-        //
-        let random_32_byte_hex = encode(gen.gen::<[u8; 16]>());
-        // Now sha256 those bytes and get a string
-        bhash2(random_32_byte_hex.as_bytes(), &mut target);
-        // search for a prefix of the sha256 in the corpus
-        let short_result = map.get(&target[0..DIFFICULTY / 2]);
-        if short_result.is_some() {
-            // Found a hit.
-            report_finding(
-                &random_32_byte_hex,
-                &bhash(random_32_byte_hex.as_bytes())[0..DIFFICULTY],
-                short_result.unwrap(),
-            );
+        // Fill up the pool of random bytes.
+        gen.fill_bytes(&mut pool);
+
+        for (byte, (i, j)) in pool
+            .as_ref()
+            .iter()
+            .zip(generate_iter(pool.as_ref().len() * 2))
+        {
+            let (high, low) = byte2hex(*byte, HEX_CHARS_LOWER);
+            encoded_pool[i] = high;
+            encoded_pool[j] = low;
+        }
+
+        for i in 0..POOL_SIZE - 32 {
+            // Chunk over the random bytes
+            let random_32_byte_hex = &encoded_pool[i..i + 32];
+            // Now sha256 those bytes and get a string
+            let result = digest::digest(&digest::SHA256, random_32_byte_hex);
+
+            // search for a prefix of the sha256 in the corpus
+            let short_hash = &result.as_ref()[0..DIFFICULTY / 2];
+            let short_result = include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
+
+            if short_result.is_some() {
+                report_finding(
+                    &str::from_utf8(random_32_byte_hex).unwrap(),
+                    &bhash(random_32_byte_hex)[0..DIFFICULTY],
+                    &short_result.unwrap(),
+                );
+            }
         }
     }
 }
 
 fn main() {
-    // This is pretty lazy to load a file and use serde to just load it all
-    // into memory, but its okay.
-    let mut file = File::open("animals.json").unwrap();
-    let mut animal_content = String::new();
-    file.read_to_string(&mut animal_content).unwrap();
-    let full_corpus: HashMap<String, (u8, u8)> = serde_json::from_str(&animal_content).unwrap();
-
     if DIFFICULTY % 2 == 1 {
         println!("Difficulty must be even");
         process::exit(0x0100);
     }
-    // The only keys that should be in the hash should be the ones with the
-    // known difficulty.
-    let mut search_corpus: FnvHashMap<[u8; DIFFICULTY / 2], (u8, u8)> =
-        FnvHashMap::with_capacity_and_hasher(8000, Default::default());
 
-    full_corpus
-        .iter()
-        .filter(|v| v.0.len() == DIFFICULTY)
-        .for_each(|v| {
-            let full_hex = decode(from_readable_hex(v.0));
-            // sometimes the corpus contains values that aren't
-            // valid readable hex values, so ignore those.
-            if full_hex.is_ok() {
-                search_corpus.insert(full_hex.unwrap().as_slice().try_into().unwrap(), *v.1);
-            }
-        });
-
-    println!(
-        "Full corpus size={} Filtered corpus size={}",
-        full_corpus.len(),
-        search_corpus.len()
-    );
     println!("Searching with difficulty={}", DIFFICULTY);
-
-    // Make the corpus thread friendly.
-    let running_corpus = Arc::new(RwLock::new(search_corpus));
 
     let cpus = num_cpus::get();
     println!("Using {} cpus to search for muids...", cpus);
     println!("");
 
-    let threads: Vec<_> = (0..cpus)
-        .map(|_i| {
-            let data = Arc::clone(&running_corpus);
-            thread::spawn(move || mine(&data))
-        })
-        .collect();
+    let threads: Vec<_> = (0..cpus).map(|_i| thread::spawn(move || mine())).collect();
 
     // The threads never exist, but leave this here for now.
     for t in threads {
