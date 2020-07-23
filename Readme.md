@@ -8,11 +8,16 @@ Author: Rusty Conover <rusty@conover.me>
 
 ## Usage
 
-Edit `build.rs` and set the DIFFICULTY constant to the difficulty of the muids you'd like to generate.
+Set the DIFFICULTY environment variable to the level of difficulty for the muids you'd like to generate.
 
 Build the code using `cargo build --release` so you get an optimized build.
 
 ```
+# For level 10, valid levels are 6-15
+$ RUSTC_FLAGS="-C target-cpu=native" DIFFICULTY=10 cargo build --release
+...
+...
+
 $ ./target/release/muid-rust
 Full corpus size=422013 Filtered corpus size=7019
 Searching with difficulty=6

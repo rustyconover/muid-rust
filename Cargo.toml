@@ -1,6 +1,6 @@
 [package]
-name = "muid-rust"
-version = "0.1.0"
+name = "muid"
+version = "0.1.1"
 authors = ["Rusty Conover <rusty@conover.me>"]
 edition = "2018"
 
@@ -10,6 +10,10 @@ edition = "2018"
 hex-literal = "0.3.0"
 serde_json = "1.0.56"
 hex = "0.4.2"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
 
 [dependencies]
 hex-literal = "0.3.0"

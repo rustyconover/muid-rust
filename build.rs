@@ -26,15 +26,15 @@ fn from_readable_hex(word: &str) -> String {
         .collect()
 }
 
-const DIFFICULTY: usize = 12;
-
 fn main() {
+    let difficulty: usize = env::var("DIFFICULTY").unwrap().parse::<usize>().unwrap();
+    println!("cargo:rerun-if-env-changed=DIFFICULTY");
     let path = Path::new(&env::var("OUT_DIR").unwrap()).join("codegen.rs");
     let mut file = BufWriter::new(File::create(&path).unwrap());
 
     let path = Path::new(&env::var("OUT_DIR").unwrap()).join("difficulty.rs");
     let mut file3 = BufWriter::new(File::create(&path).unwrap());
-    writeln!(&mut file3, "const DIFFICULTY: usize = {};", DIFFICULTY).unwrap();
+    writeln!(&mut file3, "const DIFFICULTY: usize = {};", difficulty).unwrap();
 
     let mut file2 = File::open("/Users/rusty/Development/muid-rust/animals.json").unwrap();
     let mut animal_content = String::new();
@@ -43,12 +43,12 @@ fn main() {
 
     let mut v: Vec<_> = full_corpus
         .into_iter()
-        .filter(|v| v.0.len() == DIFFICULTY && decode(from_readable_hex(&v.0)).is_ok())
+        .filter(|v| v.0.len() == difficulty && decode(from_readable_hex(&v.0)).is_ok())
         .collect();
     v.sort_by(|x, y| x.0.cmp(&y.0));
 
     write!(&mut file, "match (").unwrap();
-    for i in 0..DIFFICULTY / 2 {
+    for i in 0..difficulty / 2 {
         if i != 0 {
             write!(&mut file, ",").unwrap();
         }
@@ -65,7 +65,7 @@ fn main() {
         if full_hex.is_ok() {
             let h = full_hex.unwrap();
             write!(&mut file, "(").unwrap();
-            for i in 0..DIFFICULTY / 2 {
+            for i in 0..difficulty / 2 {
                 if i != 0 {
                     write!(&mut file, ",").unwrap();
                 }
@@ -77,7 +77,7 @@ fn main() {
     }
 
     write!(&mut file, "(").unwrap();
-    for i in 0..DIFFICULTY / 2 {
+    for i in 0..difficulty / 2 {
         if i != 0 {
             write!(&mut file, ",").unwrap();
         }
