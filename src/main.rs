@@ -3,8 +3,8 @@
 use fnv::FnvHashMap;
 use hex::{decode, encode};
 use random_fast_rng::{local_rng, Random};
+use ring::digest;
 use serde_json;
-use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::fs::File;
@@ -20,7 +20,7 @@ use std::thread;
 //
 // Since 12 seems to be the minimum difficulty for now to write
 // new streams this seems acceptable.
-const DIFFICULTY: usize = 12;
+const DIFFICULTY: usize = 14;
 
 // Invert the readable hex
 fn from_readable_hex(word: &str) -> String {
@@ -67,29 +67,23 @@ fn pretty_animal_name(code: &str, l1: u8, l2: u8) -> String {
 
 fn report_finding(key: &str, code: &str, kc: &(u8, u8)) {
     let pretty = pretty_animal_name(code, kc.0, kc.1);
-    let full_code = bhash(&key);
+    let full_code = bhash(key.as_bytes());
     println!("Pretty Name {} Key: {} Hash: {}", pretty, key, full_code)
 }
 
 // Take a string and return a 32 byte hex respresentation of the sha256 of that string.
-fn bhash(key: impl AsRef<[u8]>) -> String {
+fn bhash(key: &[u8]) -> String {
     // create a Sha256 object
-    let mut hasher = Sha256::new();
-    // write input message
-    hasher.update(key);
-    // read hash digest and consume hasher
-    let result = hasher.finalize();
+    let result = digest::digest(&digest::SHA256, key);
     // Take the first 16 bytes and encode them as hex.
-    return encode(&result.as_slice()[0..16]);
+    return encode(&result.as_ref()[0..16]);
 }
 
 // Hash the value but don't hex encode it, place it in
 // a destination rather than allocating a string.
-fn bhash2(key: impl AsRef<[u8]>, dest: &mut [u8; 16]) {
-    let mut hasher = Sha256::new();
-    hasher.update(key);
-    let result = hasher.finalize();
-    dest.copy_from_slice(&result.as_slice()[0..16]);
+fn bhash2(key: &[u8], dest: &mut [u8; 16]) {
+    let result = digest::digest(&digest::SHA256, key);
+    dest.copy_from_slice(&result.as_ref()[0..16]);
 }
 
 fn mine(corpus: &Arc<RwLock<FnvHashMap<[u8; DIFFICULTY / 2], (u8, u8)>>>) {
@@ -106,14 +100,14 @@ fn mine(corpus: &Arc<RwLock<FnvHashMap<[u8; DIFFICULTY / 2], (u8, u8)>>>) {
         //
         let random_32_byte_hex = encode(gen.gen::<[u8; 16]>());
         // Now sha256 those bytes and get a string
-        bhash2(&random_32_byte_hex, &mut target);
+        bhash2(random_32_byte_hex.as_bytes(), &mut target);
         // search for a prefix of the sha256 in the corpus
         let short_result = map.get(&target[0..DIFFICULTY / 2]);
         if short_result.is_some() {
             // Found a hit.
             report_finding(
                 &random_32_byte_hex,
-                &bhash(&random_32_byte_hex)[0..DIFFICULTY],
+                &bhash(random_32_byte_hex.as_bytes())[0..DIFFICULTY],
                 short_result.unwrap(),
             );
         }
