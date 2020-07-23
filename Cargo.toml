@@ -7,9 +7,9 @@ license = "MIT"
 homepage = "https://www.muid.org/"
 description = "A Rust implementation for midning muids"
 repository = "https://github.com/rustyconover/muid-rust"
-include = ["animals.json"]
+include = ["src/**/*", "Cargo.toml", "animals.json"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# See more keys and their definitions at https://doc.rust-lacarng.org/cargo/reference/manifest.html
 
 [build-dependencies]
 hex-literal = "0.3.0"
