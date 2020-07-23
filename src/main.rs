@@ -54,7 +54,7 @@ fn bhash(key: &[u8]) -> String {
     return encode(&result.as_ref()[0..16]);
 }
 
-const POOL_SIZE: usize = 4096;
+const POOL_SIZE: usize = 256 * 128;
 
 fn generate_iter(len: usize) -> impl Iterator<Item = (usize, usize)> {
     (0..len).step_by(2).zip((0..len).skip(1).step_by(2))
