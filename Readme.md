@@ -8,7 +8,7 @@ Author: Rusty Conover <rusty@conover.me>
 
 ## Usage
 
-Edit `src/main.rs` and set the DIFFICULTY constant to the difficulty of the muids you'd like to generate.
+Edit `build.rs` and set the DIFFICULTY constant to the difficulty of the muids you'd like to generate.
 
 Build the code using `cargo build --release` so you get an optimized build.
 
