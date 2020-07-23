@@ -2,7 +2,7 @@
 
 use fnv::FnvHashMap;
 use hex::{decode, encode};
-use rand::Rng;
+use random_fast_rng::{local_rng, Random};
 use serde_json;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -95,6 +95,7 @@ fn bhash2(key: impl AsRef<[u8]>, dest: &mut [u8; 16]) {
 fn mine(corpus: &Arc<RwLock<FnvHashMap<[u8; DIFFICULTY / 2], (u8, u8)>>>) {
     let map = corpus.read().expect("RwLock poisoned");
     let mut target: [u8; 16] = [0; 16];
+    let mut gen = local_rng();
     loop {
         // Generate 16 random bytes, then convert them to hex
         //
@@ -103,7 +104,7 @@ fn mine(corpus: &Arc<RwLock<FnvHashMap<[u8; DIFFICULTY / 2], (u8, u8)>>>) {
         // so that values could be saved and resumed, but alas I'll go
         // with this for now.
         //
-        let random_32_byte_hex = encode(rand::thread_rng().gen::<[u8; 16]>());
+        let random_32_byte_hex = encode(gen.gen::<[u8; 16]>());
         // Now sha256 those bytes and get a string
         bhash2(&random_32_byte_hex, &mut target);
         // search for a prefix of the sha256 in the corpus

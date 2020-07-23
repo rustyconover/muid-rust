@@ -25,6 +25,15 @@ Pretty Name ebb-fox Key: 9b701fa73e12156302b3748f0fd77aaf Hash: ebbf0811b004ef1c
 Pretty Name hah-bat Key: 3e0a9c2b22000198d0495025ee3e3b07 Hash: 6a6ba7cfd42a44ee91591bb77e07f683
 ```
 
+Or more challenging at difficulty 10
+
+```
+Pretty Name lactose-bat Key: 6834037f64447ce3ee783fada788c952 Hash: 1ac705eba79ecd4f0689cc07869d242b
+Pretty Name sachem-toad Key: 3849a7a599274bd587717d5d2680f6d2 Hash: 5ac6e370addbd9086524ddc1789970fa
+Pretty Name dambose-fox Key: d2d88c544ed6811ba431c311c7f37960 Hash: da3b05ef084ae4614ab9828bde0957ed
+Pretty Name hatable-cod Key: 0ac7f3e7d0115ae516483ccd583adb24 Hash: 6a7ab1ec0d47ff7b19defe707e6016fc
+```
+
 Typically useful muids are of difficulty 12 and above.
 
 For each increase in difficulty it takes about 16 times more CPU time to find one muid.
