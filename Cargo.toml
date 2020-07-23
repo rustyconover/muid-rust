@@ -3,6 +3,9 @@ name = "muid"
 version = "0.1.1"
 authors = ["Rusty Conover <rusty@conover.me>"]
 edition = "2018"
+license = "MIT"
+homepage = "https://www.muid.org/"
+repository = "https://github.com/rustyconover/muid-rust"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
