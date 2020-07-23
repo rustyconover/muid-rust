@@ -1,9 +1,10 @@
 [package]
 name = "muid"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["Rusty Conover <rusty@conover.me>"]
 edition = "2018"
 license = "MIT"
+readme = "README.md"
 homepage = "https://github.com/rustyconover/muid-rust"
 description = "A Rust implementation for mining muids"
 repository = "https://github.com/rustyconover/muid-rust"
@@ -25,4 +26,4 @@ hex-literal = "0.3.0"
 ring = "0.16.15"
 hex = "0.4.2"
 num_cpus = "1.13.0"
-random-fast-rng = { version="0.1.1", features=["std"] }
+rand = "0.7.3"

@@ -1,7 +1,7 @@
 #![feature(proc_macro_hygiene)]
 
 use hex::encode;
-use random_fast_rng::{local_rng, Random};
+use rand::prelude::*;
 use ring::digest;
 use std::process;
 use std::str;
@@ -69,7 +69,7 @@ fn byte2hex(byte: u8, table: &[u8; 16]) -> (u8, u8) {
 const HEX_CHARS_LOWER: &[u8; 16] = b"0123456789abcdef";
 
 fn mine() {
-    let mut gen = local_rng();
+    let mut gen = rand::thread_rng();
     let mut pool: [u8; 16 * POOL_SIZE] = [0; 16 * POOL_SIZE];
     let mut encoded_pool: [u8; 2 * 16 * POOL_SIZE] = [0; 2 * 16 * POOL_SIZE];
 
