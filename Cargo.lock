@@ -163,7 +163,7 @@ dependencies = [
 
 [[package]]
 name = "muid"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "hex",
  "hex-literal",
