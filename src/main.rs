@@ -2,6 +2,7 @@
 
 use hex::encode;
 use rand::prelude::*;
+use rayon::prelude::*;
 use ring::digest;
 use std::process;
 use std::str;
@@ -68,7 +69,46 @@ fn byte2hex(byte: u8, table: &[u8; 16]) -> (u8, u8) {
 }
 const HEX_CHARS_LOWER: &[u8; 16] = b"0123456789abcdef";
 
-fn mine() {
+fn mine_using_ranges() {
+    let step_size = 1024 * 1024 * 1024;
+    let step_count = u128::MAX / step_size;
+    let iterator = 0..step_count;
+
+    println!(
+        "Using range search, step size: {}, total steps for range: {}...",
+        step_size, step_count
+    );
+
+    // The iterator does not process steps in a guaranteed order
+    // but using Rayon this way proceeds that the same value
+    // is never tested twice.
+    //
+    // This may make suspending and resuming the searches more
+    // productive.
+    iterator.into_par_iter().for_each(|start| {
+        let mut dest: [u8; 32] = [0; 32];
+        for val in start * step_size..(start + 1) * step_size {
+            hex::encode_to_slice(val.to_be_bytes(), &mut dest).unwrap();
+
+            // Now sha256 those bytes and get a string
+            let result = digest::digest(&digest::SHA256, &dest);
+
+            // search for a prefix of the sha256 in the corpus
+            let short_hash = &result.as_ref()[0..DIFFICULTY / 2];
+            let short_result = include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
+
+            if short_result.is_some() {
+                report_finding(
+                    &str::from_utf8(&dest).unwrap(),
+                    &bhash(&dest)[0..DIFFICULTY],
+                    &short_result.unwrap(),
+                );
+            }
+        }
+    });
+}
+
+fn mine_using_rng() {
     let mut gen = rand::thread_rng();
     let mut pool: [u8; 16 * POOL_SIZE] = [0; 16 * POOL_SIZE];
     let mut encoded_pool: [u8; 2 * 16 * POOL_SIZE] = [0; 2 * 16 * POOL_SIZE];
@@ -120,10 +160,18 @@ fn main() {
     println!("Using {} cpus to search for muids...", cpus);
     println!("");
 
-    let threads: Vec<_> = (0..cpus).map(|_i| thread::spawn(move || mine())).collect();
+    if true {
+        // Range based mining with Rayon.
+        mine_using_ranges();
+    } else {
+        // Random number based mining.
+        let threads: Vec<_> = (0..cpus)
+            .map(|_i| thread::spawn(move || mine_using_rng()))
+            .collect();
 
-    // The threads never exist, but leave this here for now.
-    for t in threads {
-        t.join().expect("Thread panicked");
+        // The threads never exist, but leave this here for now.
+        for t in threads {
+            t.join().expect("Thread panicked");
+        }
     }
 }

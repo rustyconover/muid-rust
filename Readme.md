@@ -19,7 +19,6 @@ $ RUSTC_FLAGS="-C target-cpu=native" DIFFICULTY=10 cargo build --release
 ...
 
 $ ./target/release/muid-rust
-Full corpus size=422013 Filtered corpus size=7019
 Searching with difficulty=6
 Using 16 cpus to search for muids...
 
