@@ -1,5 +1,6 @@
 #![feature(proc_macro_hygiene)]
 
+use clap::{App, Arg};
 use hex::encode;
 use rand::prelude::*;
 use rayon::prelude::*;
@@ -69,10 +70,10 @@ fn byte2hex(byte: u8, table: &[u8; 16]) -> (u8, u8) {
 }
 const HEX_CHARS_LOWER: &[u8; 16] = b"0123456789abcdef";
 
-fn mine_using_ranges() {
-    let step_size = 1024 * 1024 * 1024;
+fn mine_using_ranges(start_step: u128) {
+    let step_size = 1024 * 1024;
     let step_count = u128::MAX / step_size;
-    let iterator = 0..step_count;
+    let iterator = start_step..step_count;
 
     println!(
         "Using range search, step size: {}, total steps for range: {}...",
@@ -154,15 +155,46 @@ fn main() {
         process::exit(0x0100);
     }
 
+    let matches = App::new("Muid Search Tool")
+        .author("Rusty Conover <rusty@conover.me>")
+        .about("Searches for Memorable Unique Identifiers of a specified difficulty.")
+        .arg(
+            Arg::with_name("mode")
+                .short("m")
+                .long("mode")
+                .default_value("range")
+                .possible_value("rng")
+                .possible_value("range")
+                .help("Sets the mode used for searching")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("range-start")
+                .long("range-start")
+                .default_value("0")
+                .value_name("VALUE")
+                .help("Sets the starting step number for range based searching")
+                .takes_value(true),
+        )
+        .get_matches();
+
+    let mode = matches.value_of("mode").unwrap_or("range");
+
+    let range_start_str = matches
+        .value_of("range-start")
+        .unwrap_or("0")
+        .parse::<u128>()
+        .unwrap();
+
     println!("Searching with difficulty={}", DIFFICULTY);
 
     let cpus = num_cpus::get();
     println!("Using {} cpus to search for muids...", cpus);
     println!("");
 
-    if true {
+    if mode == "range" {
         // Range based mining with Rayon.
-        mine_using_ranges();
+        mine_using_ranges(range_start_str);
     } else {
         // Random number based mining.
         let threads: Vec<_> = (0..cpus)

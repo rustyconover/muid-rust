@@ -1,6 +1,6 @@
 [package]
 name = "muid"
-version = "0.1.8"
+version = "0.1.9"
 authors = ["Rusty Conover <rusty@conover.me>"]
 edition = "2018"
 license = "MIT"
@@ -22,6 +22,7 @@ lto = "fat"
 codegen-units = 1
 
 [dependencies]
+clap = "2.33.3"
 hex-literal = "0.3.0"
 ring = "0.16.15"
 hex = "0.4.2"
