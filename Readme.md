@@ -1,20 +1,35 @@
 # Muid-Rust
 
-A implementation of mining [Memorable Unique Identifiers](https://github.com/microprediction/muid) (Muids) in Rust.
-
-Created as a fun way to keep my Rust skills sharp.
-
-Author: Rusty Conover <rusty@conover.me>
+Implement searching for [Memorable Unique Identifiers](https://github.com/microprediction/muid) (Muids) using Rust.
 
 ## Usage
 
-Set the DIFFICULTY environment variable to the level of difficulty for the muids you'd like to generate.
+Set the DIFFICULTY environment variable to the level of difficulty for the muids you'd like to
+find.
 
 Build the code using `cargo build --release` so you get an optimized build.
 
 ```
-# For level 10, valid levels are 6-15
-$ RUSTC_FLAGS="-C target-cpu=native" DIFFICULTY=10 cargo build --release
+Muid Search Tool
+Rusty Conover <rusty@conover.me>
+Searches for Memorable Unique Identifiers of a specified difficulty.
+
+USAGE:
+    muid [OPTIONS]
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -m, --mode <mode>              Sets the mode used for searching [default: range]  [possible values: rng, range]
+        --range-start <VALUE>      Sets the starting step number for range based searching [default: 0]
+        --rng-max-tries <VALUE>    Sets the maximum number of iterations for rng base, 0 implies no limit [default: 0]
+```
+
+```sh
+# For level 10, valid levels even numbers between 6-14
+$ RUSTFLAGS="-C target-cpu=native" DIFFICULTY=10 cargo build --release
 ...
 ...
 
@@ -38,7 +53,7 @@ Pretty Name dambose-fox Key: d2d88c544ed6811ba431c311c7f37960 Hash: da3b05ef084a
 Pretty Name hatable-cod Key: 0ac7f3e7d0115ae516483ccd583adb24 Hash: 6a7ab1ec0d47ff7b19defe707e6016fc
 ```
 
-Typically useful muids are of difficulty 12 and above.
+Useful muids are of difficulty 12 and above.
 
 For each increase in difficulty it takes about 16 times more CPU time to find one muid.
 
@@ -46,4 +61,7 @@ For each increase in difficulty it takes about 16 times more CPU time to find on
 
 This program never terminates after finding a fixed number of muids, it just keeps searching.
 
-This program will use all of the CPUs your computer has at 100%.
+You can stop searching if you're using the rng search method and specify the appropriate
+parameter.
+
+This progrmam will use all of the CPUs your computer has at 100%.
