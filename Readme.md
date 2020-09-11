@@ -28,6 +28,8 @@ OPTIONS:
                                    0 implies no limit [default: 0]
 ```
 
+## Examples
+
 ```sh
 # For level 10, valid levels even numbers between 6-14
 $ RUSTFLAGS="-C target-cpu=native" DIFFICULTY=10 cargo build --release
@@ -58,7 +60,7 @@ Useful muids are of difficulty 12 and above.
 
 For each increase in difficulty it takes about 16 times more CPU time to find one muid.
 
-## Things of which you should be aware:
+## Things of which you should be aware
 
 This program never terminates after finding a fixed number of muids, it just keeps searching.
 
