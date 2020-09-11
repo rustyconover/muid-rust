@@ -109,12 +109,16 @@ fn mine_using_ranges(start_step: u128) {
     });
 }
 
-fn mine_using_rng() {
+fn mine_using_rng(max_tries: u128) {
     let mut gen = rand::thread_rng();
     let mut pool: [u8; 16 * POOL_SIZE] = [0; 16 * POOL_SIZE];
     let mut encoded_pool: [u8; 2 * 16 * POOL_SIZE] = [0; 2 * 16 * POOL_SIZE];
-
-    loop {
+    let mut counter = if max_tries == 0 {
+        std::u128::MAX
+    } else {
+        max_tries
+    };
+    while counter > 0 {
         // Fill up the pool of random bytes.
         gen.fill_bytes(&mut pool);
 
@@ -146,6 +150,7 @@ fn mine_using_rng() {
                 );
             }
         }
+        counter = counter - 1;
     }
 }
 
@@ -176,12 +181,26 @@ fn main() {
                 .help("Sets the starting step number for range based searching")
                 .takes_value(true),
         )
+        .arg(
+            Arg::with_name("rng-max-tries")
+                .long("rng-max-tries")
+                .default_value("0")
+                .value_name("VALUE")
+                .help("Sets the maximum number of iterations for rng base, 0 implies no limit")
+                .takes_value(true),
+        )
         .get_matches();
 
     let mode = matches.value_of("mode").unwrap_or("range");
 
     let range_start_str = matches
         .value_of("range-start")
+        .unwrap_or("0")
+        .parse::<u128>()
+        .unwrap();
+
+    let rng_max_tries = matches
+        .value_of("rng-max-tries")
         .unwrap_or("0")
         .parse::<u128>()
         .unwrap();
@@ -198,7 +217,7 @@ fn main() {
     } else {
         // Random number based mining.
         let threads: Vec<_> = (0..cpus)
-            .map(|_i| thread::spawn(move || mine_using_rng()))
+            .map(|_i| thread::spawn(move || mine_using_rng(rng_max_tries)))
             .collect();
 
         // The threads never exist, but leave this here for now.
