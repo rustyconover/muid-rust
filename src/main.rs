@@ -186,7 +186,7 @@ fn main() {
                 .long("rng-max-tries")
                 .default_value("0")
                 .value_name("VALUE")
-                .help("Sets the maximum number of iterations for rng base, 0 implies no limit")
+                .help("Sets the maximum number of iterations for rng based searching, 0 implies no limit")
                 .takes_value(true),
         )
         .get_matches();

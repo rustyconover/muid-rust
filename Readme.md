@@ -24,7 +24,8 @@ FLAGS:
 OPTIONS:
     -m, --mode <mode>              Sets the mode used for searching [default: range]  [possible values: rng, range]
         --range-start <VALUE>      Sets the starting step number for range based searching [default: 0]
-        --rng-max-tries <VALUE>    Sets the maximum number of iterations for rng base, 0 implies no limit [default: 0]
+        --rng-max-tries <VALUE>    Sets the maximum number of iterations for rng based searching,
+                                   0 implies no limit [default: 0]
 ```
 
 ```sh
