@@ -7,7 +7,8 @@ Implement searching for [Memorable Unique Identifiers](https://github.com/microp
 Set the DIFFICULTY environment variable to the level of difficulty for the muids you'd like to
 find.
 
-Build the code using `cargo build --release` so you get an optimized build.
+Build the code using `cargo build --release` so you get an optimized build. You'll likely need
+to use a nightly version of rust.
 
 ```
 Muid Search Tool
